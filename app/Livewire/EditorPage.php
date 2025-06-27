@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Livewire\Attributes\On;
 
 class EditorPage extends Component
 {
@@ -42,7 +41,7 @@ class EditorPage extends Component
      * @param string $status Status undangan ('draft' atau 'published').
      * @return array Data undangan yang siap disimpan.
      */
-    protected function collectInvitationData(string $status, ?string $htmlTemplate): array
+    protected function collectInvitationData(string $status): array
     {
         // Membuat slug dari nama mempelai. Jika kosong, buat slug acak.
         $slug = Str::slug($this->groom_nickname . '-dan-' . $this->bride_nickname);
@@ -64,9 +63,8 @@ class EditorPage extends Component
             'resepsi_time' => $this->resepsi_time,
             'resepsi_location' => $this->resepsi_location,
             'love_story' => $this->love_story,
-            'html_template' => $htmlTemplate, // Tambahkan HTML template ke data
         ];
-        dd($data);
+        
         // Jika ada foto utama yang di-upload, simpan dan tambahkan path-nya ke data.
         if ($this->main_photo) {
             // Pastikan direktori 'photos' ada di storage/app/public
@@ -83,68 +81,76 @@ class EditorPage extends Component
      * @param string $status Status undangan ('draft' atau 'published').
      * @return \Illuminate\Http\RedirectResponse|void
      */
-    public function save($payload)
+    protected function save($status = 'draft')
     {
-        $status = $payload['status'];
-        $htmlTemplate = $payload['html'];
-
+        // Redirect pengguna jika belum login
         if (Auth::guest()) {
-            $route = $status === 'draft' ? 'login' : 'register';
-            session()->flash('message', 'Anda harus login untuk melanjutkan.');
-            return $this->redirect(route($route), navigate: true);
+            $redirectRoute = ($status === 'draft') ? 'login' : 'register';
+            session()->flash('message', 'Anda harus login untuk menyimpan undangan.'); // Tambahkan pesan flash
+            return $this->redirect(route($redirectRoute), navigate: true);
         }
-
-        // Aturan validasi
+        
+        // dd($this->all());
+        // Aturan validasi dasar
         $validationRules = [
             'groom_nickname' => 'required|string|max:255',
             'bride_nickname' => 'required|string|max:255',
         ];
+
+        // dd($status);
+
+        // Aturan validasi tambahan jika statusnya 'published'
         if ($status === 'published') {
             $validationRules['akad_date'] = 'required|date';
-            // tambahkan validasi lain jika perlu...
+            $validationRules['resepsi_date'] = 'required|date';
+            // Tambahkan validasi untuk lokasi dan waktu jika diperlukan untuk publikasi
+            $validationRules['akad_location'] = 'required|string|max:500';
+            $validationRules['resepsi_location'] = 'required|string|max:500';
+            $validationRules['akad_time'] = 'required|date_format:H:i';
+            $validationRules['resepsi_time'] = 'required|date_format:H:i';
         }
+        
+        // Validasi untuk foto utama jika ada
         if ($this->main_photo) {
-            $validationRules['main_photo'] = 'image|max:2048';
+            $validationRules['main_photo'] = 'image|max:2048'; // Maks 2MB
         }
+        
+        // Jalankan validasi
         $this->validate($validationRules);
 
         // Kumpulkan data undangan
-        $data = $this->collectInvitationData($status, $htmlTemplate);
+        $data = $this->collectInvitationData($status);
+        // dd($data);
 
-        // Debug di sini untuk memastikan htmlTemplate tidak null
-        // dd($data); // <--- Anda bisa aktifkan ini lagi untuk cek
-
-        // Simpan ke database
+        // Simpan atau perbarui undangan di database
+        // Gunakan updateOrCreate untuk menangani pembuatan baru atau pembaruan yang sudah ada
         $invitation = auth()->user()->invitations()->updateOrCreate(
-            ['id' => $this->invitationId],
-            $data
+            ['id' => $this->invitationId], // Cari berdasarkan ID jika sudah ada
+            $data // Data yang akan disimpan
         );
         
+        // Perbarui invitationId jika ini adalah undangan baru
         $this->invitationId = $invitation->id;
 
+        // Set pesan sukses
         $message = ($status === 'draft') ? 'Undangan berhasil disimpan sebagai draft!' : 'Selamat! Undangan Anda berhasil dipublikasikan.';
         session()->flash('message', $message);
-
-        // Refresh komponen untuk menampilkan pesan
-        $this->dispatch('$refresh');
     }
-    
+
     /**
      * Menyimpan undangan sebagai draft.
-     * @param string|null $htmlTemplate
      */
-    public function saveDraft(?string $htmlTemplate = null)
+    public function saveDraft()
     {
-        $this->save('draft', $htmlTemplate);
+        $this->save('draft');
     }
 
     /**
      * Mempublikasikan undangan.
-     * @param string|null $htmlTemplate
      */
-    public function publish(?string $htmlTemplate = null)
+    public function publish()
     {
-        $this->save('published', $htmlTemplate);
+        $this->save('published');
     }
 
     public function render()

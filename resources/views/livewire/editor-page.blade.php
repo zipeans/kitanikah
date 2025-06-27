@@ -22,7 +22,7 @@
             </div>
 
             <div class="flex-grow p-6 space-y-4">
-
+                
                 <div class="accordion-item bg-gray-50 rounded-lg border border-gray-200">
                     <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
                         <span>1. Info Mempelai</span>
@@ -108,14 +108,10 @@
                     @auth
                         {{-- TAMPILAN UNTUK PENGGUNA YANG SUDAH LOGIN --}}
                         {{-- Nanti tombol ini bisa dihubungkan dengan method Livewire --}}
-                        <button type="button" 
-                                onclick="sendHtmlToBackend('draft')" 
-                                class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                        <button type="button" class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="saveDraft">
                             Simpan Draft
                         </button>
-                        <button type="button" 
-                                onclick="sendHtmlToBackend('published')" 
-                                class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                        <button type="button" class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="publish">
                             Publikasikan
                         </button>
                     @else
@@ -139,7 +135,6 @@
 
 @push('scripts')
 <script>
-
     // Menggunakan event 'livewire:navigated' yang lebih andal untuk komponen full-page
     document.addEventListener('livewire:navigated', () => {
         const previewIframe = document.getElementById('preview-iframe');
@@ -246,26 +241,5 @@
             }
         }
     });
-    function getPreviewHtml() {
-        const iframe = document.getElementById('preview-iframe');
-        if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
-            // Mengambil seluruh konten HTML dari dalam iframe
-            return iframe.contentWindow.document.documentElement.outerHTML;
-        }
-        console.error('Preview iframe not found or not accessible.');
-        return ''; // Kembalikan string kosong jika gagal
-    }
-
-    function sendHtmlToBackend(status) {
-        const htmlContent = getPreviewHtml();
-        // Kirim event 'save-invitation' ke komponen Livewire di backend
-        // dengan membawa payload status dan html
-        Livewire.dispatch('save-invitation', { 
-            status: status, 
-            html: htmlContent 
-        });
-    }
-    
-        
 </script>
 @endpush

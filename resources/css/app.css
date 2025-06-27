@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles untuk KitaNikah */
+body {
+    font-family: 'Montserrat', sans-serif;
+    @apply bg-gray-50 text-gray-800;
+}
+
+h1, h2, h3, .font-serif {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Hero Background */
+.hero-bg {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/images/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Transisi Halus untuk Kartu Desain saat di-hover */
+.design-card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.design-card:hover {
+    transform: translateY(-8px);
+    @apply shadow-xl;
+}
+
+/* Style untuk Paket Populer */
+.popular-plan {
+    @apply border-2 border-sienna-600 relative bg-sienna-50;
+}
+
+.popular-badge {
+    @apply bg-sienna-600 text-white text-sm font-bold px-4 py-1 rounded-full absolute -top-4 left-1/2 -translate-x-1/2;
+}
+
+/* Kustomisasi Splide Carousel */
+.splide__arrow {
+    @apply bg-sienna-600;
+    opacity: 0.9;
+}
+.splide__arrow:hover {
+    opacity: 1;
+}
+.splide__arrow svg {
+    @apply fill-white;
+}
+.splide__pagination__page {
+    @apply bg-gray-300;
+}
+.splide__pagination__page.is-active {
+    @apply bg-sienna-600;
+}

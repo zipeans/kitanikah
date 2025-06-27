@@ -108,17 +108,15 @@
                     @auth
                         {{-- TAMPILAN UNTUK PENGGUNA YANG SUDAH LOGIN --}}
                         {{-- Nanti tombol ini bisa dihubungkan dengan method Livewire --}}
-                        <button type="button" class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" 
-                                wire:click="saveDraft"
-                                wire:loading.attr="disabled" wire:target="saveDraft">
-                            <span wire:loading.remove wire:target="saveDraft">Simpan Draft</span>
-                            <span wire:loading wire:target="saveDraft" class="hidden">Menyimpan...</span>
+                        <button type="button" 
+                                onclick="sendHtmlToBackend('draft')" 
+                                class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                            Simpan Draft
                         </button>
-                        <button type="button" class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
-                                wire:click="publish"
-                                wire:loading.attr="disabled" wire:target="publish">
-                            <span wire:loading.remove wire:target="publish">Publikasikan</span>
-                            <span wire:loading wire:target="publish" class="hidden">Memproses...</span>
+                        <button type="button" 
+                                onclick="sendHtmlToBackend('published')" 
+                                class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                            Publikasikan
                         </button>
                     @else
                         {{-- TAMPILAN UNTUK PENGGUNA YANG BELUM LOGIN (TAMU) --}}
@@ -247,16 +245,26 @@
                 });
             }
         }
-function getPreviewHtml() {
-            const previewIframe = document.getElementById('preview-iframe');
-            if (previewIframe && previewIframe.contentWindow && previewIframe.contentWindow.document) {
-                // Mengambil seluruh konten HTML dari dalam iframe
-                return previewIframe.contentWindow.document.documentElement.outerHTML;
-            }
-            return '';
-        }
     });
+    function getPreviewHtml() {
+        const iframe = document.getElementById('preview-iframe');
+        if (iframe && iframe.contentWindow && iframe.contentWindow.document) {
+            // Mengambil seluruh konten HTML dari dalam iframe
+            return iframe.contentWindow.document.documentElement.outerHTML;
+        }
+        console.error('Preview iframe not found or not accessible.');
+        return ''; // Kembalikan string kosong jika gagal
+    }
 
+    function sendHtmlToBackend(status) {
+        const htmlContent = getPreviewHtml();
+        // Kirim event 'save-invitation' ke komponen Livewire di backend
+        // dengan membawa payload status dan html
+        Livewire.dispatch('save-invitation', { 
+            status: status, 
+            html: htmlContent 
+        });
+    }
     
         
 </script>

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\On;
 
 class EditorPage extends Component
 {
@@ -82,60 +83,50 @@ class EditorPage extends Component
      * @param string $status Status undangan ('draft' atau 'published').
      * @return \Illuminate\Http\RedirectResponse|void
      */
-    protected function save(string $status = 'draft', ?string $htmlTemplate = null)
+    public function save($payload)
     {
-        // Redirect pengguna jika belum login
+        $status = $payload['status'];
+        $htmlTemplate = $payload['html'];
+
         if (Auth::guest()) {
-            $redirectRoute = ($status === 'draft') ? 'login' : 'register';
-            session()->flash('message', 'Anda harus login untuk menyimpan undangan.'); // Tambahkan pesan flash
-            return $this->redirect(route($redirectRoute), navigate: true);
+            $route = $status === 'draft' ? 'login' : 'register';
+            session()->flash('message', 'Anda harus login untuk melanjutkan.');
+            return $this->redirect(route($route), navigate: true);
         }
-        
-        // dd($this->all());
-        // Aturan validasi dasar
+
+        // Aturan validasi
         $validationRules = [
             'groom_nickname' => 'required|string|max:255',
             'bride_nickname' => 'required|string|max:255',
         ];
-
-        // dd($status);
-
-        // Aturan validasi tambahan jika statusnya 'published'
         if ($status === 'published') {
             $validationRules['akad_date'] = 'required|date';
-            $validationRules['resepsi_date'] = 'required|date';
-            // Tambahkan validasi untuk lokasi dan waktu jika diperlukan untuk publikasi
-            $validationRules['akad_location'] = 'required|string|max:500';
-            $validationRules['resepsi_location'] = 'required|string|max:500';
-            $validationRules['akad_time'] = 'required|date_format:H:i';
-            $validationRules['resepsi_time'] = 'required|date_format:H:i';
+            // tambahkan validasi lain jika perlu...
         }
-        
-        // Validasi untuk foto utama jika ada
         if ($this->main_photo) {
-            $validationRules['main_photo'] = 'image|max:2048'; // Maks 2MB
+            $validationRules['main_photo'] = 'image|max:2048';
         }
-        
-        // Jalankan validasi
         $this->validate($validationRules);
 
         // Kumpulkan data undangan
         $data = $this->collectInvitationData($status, $htmlTemplate);
-        // dd($data);
 
-        // Simpan atau perbarui undangan di database
-        // Gunakan updateOrCreate untuk menangani pembuatan baru atau pembaruan yang sudah ada
+        // Debug di sini untuk memastikan htmlTemplate tidak null
+        // dd($data); // <--- Anda bisa aktifkan ini lagi untuk cek
+
+        // Simpan ke database
         $invitation = auth()->user()->invitations()->updateOrCreate(
-            ['id' => $this->invitationId], // Cari berdasarkan ID jika sudah ada
-            $data // Data yang akan disimpan
+            ['id' => $this->invitationId],
+            $data
         );
         
-        // Perbarui invitationId jika ini adalah undangan baru
         $this->invitationId = $invitation->id;
 
-        // Set pesan sukses
         $message = ($status === 'draft') ? 'Undangan berhasil disimpan sebagai draft!' : 'Selamat! Undangan Anda berhasil dipublikasikan.';
         session()->flash('message', $message);
+
+        // Refresh komponen untuk menampilkan pesan
+        $this->dispatch('$refresh');
     }
     
     /**

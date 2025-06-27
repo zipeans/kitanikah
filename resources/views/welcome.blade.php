@@ -11,6 +11,8 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+
 </head>
 <body class="antialiased">
 
@@ -65,28 +67,21 @@
                     <p class="text-gray-600 max-w-2xl mx-auto">Pilih tema yang paling sesuai dengan kepribadian dan cerita cinta Anda.</p>
                 </div>
                 
-                <div class="splide" id="design-carousel" aria-label="Contoh Desain Undangan" data-aos="fade-up" data-aos-delay="200">
+                <div class="splide" id="design-carousel" aria-label="Contoh Desain Undangan">
                     <div class="splide__track">
                         <ul class="splide__list">
-
                             @foreach ($designThemes as $theme)
                             <li class="splide__slide p-4">
                                 <div class="bg-white rounded-lg shadow-lg overflow-hidden group design-card h-full flex flex-col">
-                                    
-                                    {{-- Bagian Atas Kartu (Gambar atau Warna Default) --}}
                                     <div class="h-64 w-full">
                                         @if ($theme['image_url'])
-                                            {{-- JIKA GAMBAR ADA: Tampilkan gambar --}}
                                             <img src="{{ $theme['image_url'] }}" alt="{{ $theme['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                         @else
-                                            {{-- JIKA GAMBAR KOSONG: Tampilkan div dengan warna default --}}
                                             <div class="w-full h-full flex items-center justify-center p-4" style="background-color: {{ $theme['default_color'] }};">
                                                 <h3 class="font-serif text-3xl text-white/80 text-center">{{ $theme['title'] }}</h3>
                                             </div>
                                         @endif
                                     </div>
-
-                                    {{-- Bagian Bawah Kartu (Deskripsi) --}}
                                     <div class="p-6 flex-grow">
                                         <h3 class="text-xl font-bold">{{ $theme['title'] }}</h3>
                                         <p class="text-gray-600 mt-2">{{ $theme['description'] }}</p>
@@ -94,7 +89,6 @@
                                 </div>
                             </li>
                             @endforeach
-
                         </ul>
                     </div>
                 </div>
@@ -164,6 +158,27 @@
             <p class="text-gray-400">&copy; {{ date('Y') }} KitaNikah. Dibuat dengan ❤ di Indonesia untuk hari bahagiamu.</p>
         </div>
     </footer>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <script>
+        document.addEventListener( 'DOMContentLoaded', function () {
+            // Inisialisasi Carousel
+            new Splide( '#design-carousel', {
+                type      : 'loop',
+                perPage   : 3,
+                perMove   : 1,
+                gap       : '1rem',
+                autoplay  : true,
+                pauseOnHover: true,
+                breakpoints: {
+                    1024: {
+                        perPage: 2,
+                    },
+                    768: {
+                        perPage: 1,
+                    },
+                },
+            } ).mount();
+        } );
+    </script>
 </body>
 </html>

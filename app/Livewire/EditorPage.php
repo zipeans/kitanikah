@@ -41,7 +41,7 @@ class EditorPage extends Component
      * @param string $status Status undangan ('draft' atau 'published').
      * @return array Data undangan yang siap disimpan.
      */
-    protected function collectInvitationData(string $status): array
+    protected function collectInvitationData(string $status, ?string $htmlTemplate): array
     {
         // Membuat slug dari nama mempelai. Jika kosong, buat slug acak.
         $slug = Str::slug($this->groom_nickname . '-dan-' . $this->bride_nickname);
@@ -63,8 +63,9 @@ class EditorPage extends Component
             'resepsi_time' => $this->resepsi_time,
             'resepsi_location' => $this->resepsi_location,
             'love_story' => $this->love_story,
+            'html_template' => $htmlTemplate, // Tambahkan HTML template ke data
         ];
-        
+        dd($data);
         // Jika ada foto utama yang di-upload, simpan dan tambahkan path-nya ke data.
         if ($this->main_photo) {
             // Pastikan direktori 'photos' ada di storage/app/public
@@ -81,7 +82,7 @@ class EditorPage extends Component
      * @param string $status Status undangan ('draft' atau 'published').
      * @return \Illuminate\Http\RedirectResponse|void
      */
-    protected function save($status = 'draft')
+    protected function save(string $status = 'draft', ?string $htmlTemplate = null)
     {
         // Redirect pengguna jika belum login
         if (Auth::guest()) {
@@ -119,7 +120,7 @@ class EditorPage extends Component
         $this->validate($validationRules);
 
         // Kumpulkan data undangan
-        $data = $this->collectInvitationData($status);
+        $data = $this->collectInvitationData($status, $htmlTemplate);
         // dd($data);
 
         // Simpan atau perbarui undangan di database
@@ -136,21 +137,23 @@ class EditorPage extends Component
         $message = ($status === 'draft') ? 'Undangan berhasil disimpan sebagai draft!' : 'Selamat! Undangan Anda berhasil dipublikasikan.';
         session()->flash('message', $message);
     }
-
+    
     /**
      * Menyimpan undangan sebagai draft.
+     * @param string|null $htmlTemplate
      */
-    public function saveDraft()
+    public function saveDraft(?string $htmlTemplate = null)
     {
-        $this->save('draft');
+        $this->save('draft', $htmlTemplate);
     }
 
     /**
      * Mempublikasikan undangan.
+     * @param string|null $htmlTemplate
      */
-    public function publish()
+    public function publish(?string $htmlTemplate = null)
     {
-        $this->save('published');
+        $this->save('published', $htmlTemplate);
     }
 
     public function render()

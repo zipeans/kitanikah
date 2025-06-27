@@ -22,7 +22,7 @@
             </div>
 
             <div class="flex-grow p-6 space-y-4">
-                
+
                 <div class="accordion-item bg-gray-50 rounded-lg border border-gray-200">
                     <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
                         <span>1. Info Mempelai</span>
@@ -108,11 +108,17 @@
                     @auth
                         {{-- TAMPILAN UNTUK PENGGUNA YANG SUDAH LOGIN --}}
                         {{-- Nanti tombol ini bisa dihubungkan dengan method Livewire --}}
-                        <button type="button" class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="saveDraft">
-                            Simpan Draft
+                        <button type="button" class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" 
+                                wire:click="saveDraft"
+                                wire:loading.attr="disabled" wire:target="saveDraft">
+                            <span wire:loading.remove wire:target="saveDraft">Simpan Draft</span>
+                            <span wire:loading wire:target="saveDraft" class="hidden">Menyimpan...</span>
                         </button>
-                        <button type="button" class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="publish">
-                            Publikasikan
+                        <button type="button" class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
+                                wire:click="publish"
+                                wire:loading.attr="disabled" wire:target="publish">
+                            <span wire:loading.remove wire:target="publish">Publikasikan</span>
+                            <span wire:loading wire:target="publish" class="hidden">Memproses...</span>
                         </button>
                     @else
                         {{-- TAMPILAN UNTUK PENGGUNA YANG BELUM LOGIN (TAMU) --}}
@@ -135,6 +141,7 @@
 
 @push('scripts')
 <script>
+
     // Menggunakan event 'livewire:navigated' yang lebih andal untuk komponen full-page
     document.addEventListener('livewire:navigated', () => {
         const previewIframe = document.getElementById('preview-iframe');
@@ -240,6 +247,17 @@
                 });
             }
         }
+function getPreviewHtml() {
+            const previewIframe = document.getElementById('preview-iframe');
+            if (previewIframe && previewIframe.contentWindow && previewIframe.contentWindow.document) {
+                // Mengambil seluruh konten HTML dari dalam iframe
+                return previewIframe.contentWindow.document.documentElement.outerHTML;
+            }
+            return '';
+        }
     });
+
+    
+        
 </script>
 @endpush

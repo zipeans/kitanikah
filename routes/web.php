@@ -69,8 +69,10 @@ Route::get('/pilih-template', function () {
 // Halaman editor
 // Route::get('/editor/{template_title}', EditorPage::class)->name('editor');
 
-Route::get('/editor/create/{template_title}', EditorPage::class)->name('editor.create');
-Route::get('/editor/{invitation}/edit', EditorPage::class)->name('editor.edit');
+// Route::get('/editor/create/{template_title}', EditorPage::class)->name('editor.create');
+// Route::get('/editor/{invitation}/edit', EditorPage::class)->name('editor.edit');
+Route::get('editor/new/{template_title}', \App\Livewire\EditorPage::class)->name('editor.create');
+Route::get('editor/{invitation}', \App\Livewire\EditorPage::class)->name('editor.edit');
 
 // --- ROUTE OTENTIKASI (UNTUK PENGGUNA YANG BELUM LOGIN) ---
 Route::middleware('guest')->group(function () {

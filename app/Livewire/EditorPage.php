@@ -31,34 +31,38 @@ class EditorPage extends Component
     // Properti untuk menampung file yang di-upload
     public $main_photo;
 
-    public function mount(Invitation $invitation = null, string $template_title = '')
+    public function mount($invitation = null, $template_title = null)
     {
-        if ($invitation->exists) {
+        // Coba cari undangan berdasarkan ID yang dilewatkan dari rute
+        if ($invitation && $invitation_model = Invitation::find($invitation)) {
             // -- MODE EDIT --
-            if ($invitation->user_id !== Auth::id()) {
+            // Pastikan pengguna hanya bisa mengedit undangannya sendiri
+            if ($invitation_model->user_id !== Auth::id()) {
                 abort(403, 'Akses ditolak.');
             }
             
-            $this->invitation = $invitation;
-            $this->invitationId = $invitation->id;
-            $this->template_title = $invitation->template_title;
-            $this->groom_nickname = $invitation->groom_nickname;
-            $this->bride_nickname = $invitation->bride_nickname;
-            $this->akad_date = $invitation->akad_date;
-            $this->akad_time = $invitation->akad_time;
-            $this->akad_location = $invitation->akad_location;
-            $this->resepsi_date = $invitation->resepsi_date;
-            $this->resepsi_time = $invitation->resepsi_time;
-            $this->resepsi_location = $invitation->resepsi_location;
-            $this->love_story = $invitation->love_story;
-            $this->existing_photo_path = $invitation->main_photo_path;//null;//str_replace('/','//', $invitation->main_photo_path); // Simpan path foto lama
+            $this->invitation = $invitation_model;
+            $this->invitationId = $invitation_model->id;
+            $this->template_title = $invitation_model->template_title;
+            $this->groom_nickname = $invitation_model->groom_nickname;
+            $this->bride_nickname = $invitation_model->bride_nickname;
+            $this->akad_date = $invitation_model->akad_date;
+            $this->akad_time = $invitation_model->akad_time;
+            $this->akad_location = $invitation_model->akad_location;
+            $this->resepsi_date = $invitation_model->resepsi_date;
+            $this->resepsi_time = $invitation_model->resepsi_time;
+            $this->resepsi_location = $invitation_model->resepsi_location;
+            $this->love_story = $invitation_model->love_story;
+            $this->existing_photo_path = $invitation_model->main_photo_path;
             
-        } else {
+        } elseif ($template_title) {
             // -- MODE BUAT BARU --
-            $this->template_title = $template_title;
+            $this->template_title = urldecode($template_title);
             $this->invitation = new Invitation();
-
             $this->existing_photo_path = null; 
+        } else {
+            // Jika tidak ada parameter yang valid, kembalikan ke dashboard
+            return redirect()->route('dashboard');
         }
     }
 

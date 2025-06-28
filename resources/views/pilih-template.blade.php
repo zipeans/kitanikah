@@ -43,51 +43,81 @@
 <body class="bg-gray-50 text-gray-800">
 
     <!-- Header dengan Logika Otentikasi -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{{ url('/') }}" class="font-serif text-2xl font-bold text-gray-900">KitaNikah</a>
-            
-            <div class="flex items-center space-x-4">
-                @auth
-                    {{-- TAMPILAN JIKA PENGGUNA SUDAH LOGIN --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open" class="flex items-center space-x-2 text-sm font-medium text-gray-600 hover:text-sienna-600">
-                            <span>{{ Auth::user()->name }}</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50 transition-all duration-300">
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="font-serif text-2xl font-bold text-gray-900">KitaNikah</a>
+        
+        {{-- Navigasi tengah --}}
+        <div class="hidden md:flex items-center space-x-8">
+            <a href="#features" class="text-gray-600 hover:text-sienna-600 transition-colors duration-300">Fitur</a>
+            <a href="#designs" class="text-gray-600 hover:text-sienna-600 transition-colors duration-300">Desain</a>
+            <a href="#pricing" class="text-gray-600 hover:text-sienna-600 transition-colors duration-300">Harga</a>
+        </div>
 
-                        <div x-show="open" @click.away="open = false" 
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="transform opacity-0 scale-95"
-                             x-transition:enter-end="transform opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-75"
-                             x-transition:leave-start="transform opacity-100 scale-100"
-                             x-transition:leave-end="transform opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
-                             style="display: none;">
-                            
-                            <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                            <a href="{{ route('profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil</a>
-                            <div class="border-t border-gray-100"></div>
-                            <!-- Form untuk Logout -->
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <a href="{{ route('logout') }}"
-                                   onclick="event.preventDefault(); this.closest('form').submit();"
-                                   class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Keluar
-                                </a>
-                            </form>
+        {{-- Panel Navigasi Kanan --}}
+        <div class="flex items-center space-x-4">
+            <a href="{{ route('pilih-template') }}" class="hidden sm:inline-block bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300">Buat Undangan</a>
+
+            @auth
+                {{-- ===== PANEL PENGGUNA YANG LEBIH MENARIK ===== --}}
+                <div x-data="{ open: false }" class="relative">
+                    {{-- Tombol Avatar Pengguna --}}
+                    <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
+                        <span class="text-sm font-medium text-gray-600 hover:text-sienna-600">{{ Auth::user()->name }}</span>
+                        {{-- Avatar Placeholder --}}
+                        <div class="w-8 h-8 rounded-full bg-sienna-200 text-sienna-700 flex items-center justify-center font-bold text-sm">
+                            {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
+                    </button>
+
+                    {{-- Dropdown Menu --}}
+                    <div x-show="open" 
+                         @click.away="open = false" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border"
+                         style="display: none;">
+                        
+                        <div class="px-4 py-3 border-b">
+                            <p class="text-sm leading-5">Masuk sebagai</p>
+                            <p class="text-sm font-medium leading-5 text-gray-900 truncate">{{ Auth::user()->email }}</p>
+                        </div>
+                        
+                        <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                            {{-- Ikon Dashboard --}}
+                            <svg class="w-5 h-5 mr-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M4 6h16M4 18h16" /></svg>
+                            Dashboard
+                        </a>
+                        <a href="{{ route('profile') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                            {{-- Ikon Profil --}}
+                            <svg class="w-5 h-5 mr-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            Profil
+                        </a>
+                        <div class="border-t border-gray-100"></div>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <a href="{{ route('logout') }}"
+                               onclick="event.preventDefault(); this.closest('form').submit();"
+                               class="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                                {{-- Ikon Keluar --}}
+                                <svg class="w-5 h-5 mr-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                Keluar
+                            </a>
+                        </form>
                     </div>
-                @else
-                    {{-- TAMPILAN JIKA PENGGUNA BELUM LOGIN --}}
-                    <a href="{{ route('login') }}" class="text-gray-600 hover:text-sienna-600 transition duration-300">Login</a>
-                    <a href="{{ route('register') }}" class="bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300">Daftar</a>
-                @endauth
-            </div>
-        </nav>
-    </header>
+                </div>
+            @else
+                {{-- Tampilan jika belum login --}}
+                <a href="{{ route('login') }}" class="text-gray-600 hover:text-sienna-600 transition duration-300">Login</a>
+                <a href="{{ route('register') }}" class="hidden sm:inline-block bg-gray-800 hover:bg-black text-white font-bold py-2 px-6 rounded-lg transition duration-300">Daftar</a>
+            @endauth
+        </div>
+    </nav>
+</header>
 
     <main class="container mx-auto px-6 py-16">
         <!-- Judul Halaman -->

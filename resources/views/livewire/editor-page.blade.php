@@ -28,7 +28,7 @@
                         <h2 class="text-2xl font-bold font-serif">Editor Undangan</h2>
                         <p class="text-sm text-gray-500">Template: <span class="font-semibold text-sienna-600">{{ $template_title }}</span></p>
                     </div>
-                    <a href="{{ route('pilih-template') }}" class="text-sm text-gray-600 hover:text-sienna-600">&larr; Kembali</a>
+                    <a href="{{ route('dashboard') }}" class="text-sm text-gray-600 hover:text-sienna-600">&larr; Kembali ke Dashboard</a>
                 </div>
             </div>
 

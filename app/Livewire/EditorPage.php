@@ -25,6 +25,7 @@ class EditorPage extends Component
     public $resepsi_time = '';
     public $resepsi_location = '';
     public $love_story = '';
+    public $existing_photo_path = '';
     public $activeAccordion = 1;
     
     // Properti untuk menampung file yang di-upload
@@ -50,12 +51,14 @@ class EditorPage extends Component
             $this->resepsi_time = $invitation->resepsi_time;
             $this->resepsi_location = $invitation->resepsi_location;
             $this->love_story = $invitation->love_story;
-            $this->existing_photo_path = $invitation->main_photo_path; // Simpan path foto lama
+            $this->existing_photo_path = $invitation->main_photo_path;//null;//str_replace('/','//', $invitation->main_photo_path); // Simpan path foto lama
             
         } else {
             // -- MODE BUAT BARU --
             $this->template_title = $template_title;
             $this->invitation = new Invitation();
+
+            $this->existing_photo_path = null; 
         }
     }
 
@@ -81,10 +84,10 @@ class EditorPage extends Component
             'groom_nickname' => $this->groom_nickname,
             'bride_nickname' => $this->bride_nickname,
             'akad_date' => $this->akad_date,
-            'akad_time' => $this->akad_time,
+            'akad_time' => $this->akad_time ? date('H:i', strtotime($this->akad_time)) : null,
             'akad_location' => $this->akad_location,
             'resepsi_date' => $this->resepsi_date,
-            'resepsi_time' => $this->resepsi_time,
+            'resepsi_time' => $this->resepsi_time ? date('H:i', strtotime($this->resepsi_time)) : null,
             'resepsi_location' => $this->resepsi_location,
             'love_story' => $this->love_story,
         ];
@@ -155,9 +158,13 @@ class EditorPage extends Component
         // Perbarui invitationId jika ini adalah undangan baru
         $this->invitationId = $invitation->id;
 
-        // Set pesan sukses
-        $message = ($status === 'draft') ? 'Undangan berhasil disimpan sebagai draft!' : 'Selamat! Undangan Anda berhasil dipublikasikan.';
-        session()->flash('message', $message);
+        // PERBAIKAN DI SINI: Siapkan pesan dan kirim via dispatch
+        $message = ($status === 'draft') 
+            ? 'Undangan berhasil disimpan sebagai draft!' 
+            : 'Selamat! Undangan Anda berhasil dipublikasikan.';
+
+        // Hapus session()->flash() dan ganti dengan dispatch yang membawa pesan
+        $this->dispatch('invitation-saved', message: $message);
     }
 
     /**

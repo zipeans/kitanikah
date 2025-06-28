@@ -1,11 +1,22 @@
 <div>
-    {{-- Notifikasi untuk pesan sukses --}}
-    @if (session()->has('message'))
-        <div x-data="{ show: true }" x-init="setTimeout(() => show = false, 4000)" x-show="show"
-             class="fixed top-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg z-50 transition-opacity duration-300">
-            {{ session('message') }}
-        </div>
-    @endif
+    {{-- Notifikasi baru yang dikontrol oleh Alpine.js dan Event Livewire --}}
+    <div x-data="{ show: false, message: '' }"
+        @invitation-saved.window="
+            message = $event.detail.message; 
+            show = true; 
+            setTimeout(() => show = false, 5000)
+        "
+        x-show="show"
+        x-transition:enter="transform ease-out duration-300 transition"
+        x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+        x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+        x-transition:leave="transition ease-in duration-100"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed top-5 right-5 bg-green-600 text-white py-3 px-5 rounded-lg shadow-lg z-50"
+        style="display: none;">
+        <span x-text="message"></span>
+    </div>
 
     <div class="flex h-screen bg-gray-100">
 
@@ -135,111 +146,116 @@
 
 @push('scripts')
 <script>
+    function getPreviewHtml() {
+        return document.getElementById('preview-iframe')?.contentWindow?.document.documentElement.outerHTML || '';
+    }
+    function sendHtmlToBackend(status) {
+        Livewire.dispatch('save-invitation', { 
+            status: status, 
+            html: getPreviewHtml() 
+        });
+    }
+
     // Menggunakan event 'livewire:navigated' yang lebih andal untuk komponen full-page
     document.addEventListener('livewire:navigated', () => {
         const previewIframe = document.getElementById('preview-iframe');
-        const editorForm = document.querySelector('.editor-panel'); // Mengambil form berdasarkan class
+        if (!previewIframe) return;
 
+        // Template dasar iframe
         const previewTemplate = `
             <!DOCTYPE html>
-            <html lang="id">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <script src="https://cdn.tailwindcss.com"><\/script>
-                <link rel="preconnect" href="https://fonts.googleapis.com">
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-                <style>
-                    body { font-family: 'Montserrat', sans-serif; background-color: #EAE0D5; color: #5D4037; padding: 2rem; overflow-x: hidden; }
-                    .font-serif { font-family: 'Playfair Display', serif; }
-                    .font-script { font-family: 'Dancing Script', cursive; }
-                    .card { background-color: rgba(255,255,255,0.7); backdrop-filter: blur(5px); }
-                </style>
-            </head>
-            <body>
-                <div class="max-w-2xl mx-auto text-center">
-                    <p class="text-lg">The Wedding Of</p>
-                    <h1 id="groom-nickname-preview" class="font-script text-6xl mt-4">....</h1>
-                    <h1 id="bride-nickname-preview" class="font-script text-6xl my-4">....</h1>
-                    <img id="main-photo-preview" src="https://placehold.co/600x400/BFB5A9/FFFFFF?text=Foto+Anda" alt="Wedding Photo" class="w-full rounded-lg shadow-lg my-8">
-                    <p id="love-story-preview" class="text-sm italic my-8">"Di sini akan tampil cerita cinta Anda yang indah..."</p>
-                    <div class="grid md:grid-cols-2 gap-8 my-10">
-                        <div class="card p-6 rounded-lg shadow-md">
-                            <h3 class="font-serif text-2xl font-bold">Akad Nikah</h3>
-                            <p id="akad-date-preview" class="mt-4">....</p>
-                            <p id="akad-time-preview" class="mt-2"></p>
-                            <p id="akad-location-preview" class="mt-2 text-xs"></p>
+                <html lang="id">
+                    <head>
+                        <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                        <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+                        <style> body { font-family: 'Montserrat', sans-serif; background-color: #EAE0D5; color: #5D4037; padding: 2rem; } .font-serif { font-family: 'Playfair Display', serif; } .font-script { font-family: 'Dancing Script', cursive; } .card { background-color: rgba(255,255,255,0.7); } </style>
+                    </head>
+                    <body>
+                        <div class="max-w-2xl mx-auto text-center">
+                            <p class="text-lg">The Wedding Of</p>
+                            <h1 id="groom-nickname-preview" class="font-script text-6xl mt-4"></h1>
+                            <h1 id="" class="font-script text-6xl mt-4">&</h1>
+                            <h1 id="bride-nickname-preview" class="font-script text-6xl my-4"></h1>
+                            <img id="main-photo-preview" src="" alt="Wedding Photo" class="w-full rounded-lg shadow-lg my-8">
+                            <p id="love-story-preview" class="text-sm italic my-8"></p>
+                            <div class="grid md:grid-cols-2 gap-8 my-10">
+                                <div class="card p-6 rounded-lg shadow-md">
+                                    <h3 class="font-serif text-2xl font-bold">Akad Nikah</h3>
+                                    <p id="akad-date-preview" class="mt-4"></p>
+                                    <p id="akad-time-preview" class="mt-2"></p>
+                                    <p id="akad-location-preview" class="mt-2 text-xs"></p>
+                                </div>
+                                <div class="card p-6 rounded-lg shadow-md">
+                                    <h3 class="font-serif text-2xl font-bold">Resepsi</h3>
+                                    <p id="resepsi-date-preview" class="mt-4"></p>
+                                    <p id="resepsi-time-preview" class="mt-2"></p>
+                                    <p id="resepsi-location-preview" class="mt-2 text-xs"></p>
+                                </div>
+                            </div>
+                            <p class="text-xs mt-10">Dibuat dengan ❤ oleh KitaNikah</p>
                         </div>
-                        <div class="card p-6 rounded-lg shadow-md">
-                             <h3 class="font-serif text-2xl font-bold">Resepsi</h3>
-                            <p id="resepsi-date-preview" class="mt-4">....</p>
-                            <p id="resepsi-time-preview" class="mt-2"></p>
-                            <p id="resepsi-location-preview" class="mt-2 text-xs"></p>
-                        </div>
-                    </div>
-                    <p class="text-xs mt-10">Dibuat dengan ❤ oleh KitaNikah</p>
-                </div>
-            </body>
-            </html>
+                    </body>
+                </html>
         `;
+        
+        previewIframe.srcdoc = previewTemplate;
 
-        if (previewIframe) {
-            previewIframe.srcdoc = previewTemplate;
+        // Fungsi yang akan dijalankan untuk mengupdate SEMUA preview
+        function updateAllPreview() {
+            const previewDoc = previewIframe.contentWindow?.document;
+            if (!previewDoc) return;
 
-            const updatePreview = () => {
-                if (!previewIframe.contentWindow || !previewIframe.contentWindow.document) return;
-                const previewDoc = previewIframe.contentWindow.document;
-
-                editorForm.querySelectorAll('.input-field').forEach(input => {
-                    const targetId = input.dataset.target;
-                    const targetElement = previewDoc.getElementById(targetId);
-                    if (targetElement) {
-                        let value = input.value.trim();
-                        if (input.value) {
-                            if (input.type === 'date') {
-                                try {
-                                    const date = new Date(input.value);
-                                    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-                                    const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-                                    value = adjustedDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                                } catch (e) { value = input.value; }
-                            }
-                            if (input.type === 'time') { value = `Pukul ${input.value} WIB`; }
-                            targetElement.innerText = value;
-                        } else {
-                            targetElement.innerText = "....";
-                        }
+            // Update semua field teks
+            document.querySelectorAll('.input-field[data-target]').forEach(input => {
+                const targetElement = previewDoc.getElementById(input.dataset.target);
+                if (targetElement) {
+                    let value = input.value;
+                    let displayValue = value.trim() || '....';
+                    
+                    if (value && input.type === 'date') {
+                        try {
+                            displayValue = new Date(value).toLocaleDateString('id-ID', { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        } catch (e) {}
+                    } else if (value && input.type === 'time') {
+                        const timeWithoutSeconds = value.substring(0, 5);
+                        displayValue = `Pukul ${timeWithoutSeconds} WIB`;
                     }
-                });
-            };
-
-            previewIframe.onload = updatePreview;
-
-            // Menggunakan event delegasi pada editorForm
-            editorForm.addEventListener('input', (event) => {
-                // Hanya update preview jika input yang diubah memiliki kelas 'input-field'
-                if (event.target.classList.contains('input-field')) {
-                    updatePreview();
+                    targetElement.innerText = displayValue;
                 }
             });
 
-            const photoUpload = document.getElementById('photo_upload');
-            if (photoUpload) {
-                photoUpload.addEventListener('change', (event) => {
-                    const file = event.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const previewDoc = previewIframe.contentWindow.document;
-                            const photoPreview = previewDoc.getElementById('main-photo-preview');
-                            if (photoPreview) { photoPreview.src = e.target.result; }
-                        }
-                        reader.readAsDataURL(file);
-                    }
-                });
+            // Update gambar
+            const photoInput = document.getElementById('photo_upload');
+            const photoPreview = previewDoc.getElementById('main-photo-preview');
+            const existingPhotoPath = @json($existing_photo_path);
+
+            if (photoInput && photoInput.files[0]) {
+                // Prioritas 1: Jika ada file BARU yang dipilih di form, tampilkan itu.
+                const reader = new FileReader();
+                reader.onload = e => { if(photoPreview) photoPreview.src = e.target.result; };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else if (existingPhotoPath) {
+                // Prioritas 2: Jika tidak ada file baru, dan ada data dari DB, tampilkan foto dari DB.
+                if(photoPreview) photoPreview.src = `/storage/${existingPhotoPath}`;
+            } else {
+                // Prioritas 3: Jika tidak ada keduanya, tampilkan placeholder.
+                if(photoPreview) photoPreview.src = 'https://placehold.co/600x400/BFB5A9/FFFFFF?text=Foto+Anda';
             }
         }
+
+        // Jalankan saat iframe selesai dimuat untuk mengisi data awal
+        previewIframe.onload = () => {
+            updateAllPreview();
+            
+            // Tambahkan listener ke setiap input untuk live update
+            document.querySelectorAll('.input-field').forEach(input => {
+                input.addEventListener('input', updateAllPreview);
+            });
+
+            // Listener HANYA untuk input file
+            document.getElementById('photo_upload')?.addEventListener('change', updateAllPreview);
+        };
     });
 </script>
 @endpush

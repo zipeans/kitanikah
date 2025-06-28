@@ -63,7 +63,11 @@
                                 </div>
                                 {{-- Tombol Aksi per Kartu --}}
                                 <div class="mt-4 flex space-x-3 items-center">
-                                    <a href="#" class="text-sm font-medium text-blue-600 hover:underline">Lihat</a>
+                                    <a href="{{ route('invitation.show', ['slug' => $invitation->slug]) }}" 
+                                    target="_blank" 
+                                    class="text-sm font-medium text-blue-600 hover:underline">
+                                    Lihat
+                                    </a>
                                     <a href="{{ route('editor.edit', ['invitation' => $invitation]) }}" class="text-sm font-medium text-sienna-600 hover:underline">Edit</a>
                                     <button 
                                         wire:click="delete({{ $invitation->id }})" 

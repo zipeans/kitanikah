@@ -135,23 +135,23 @@
                     <div class="splide__track">
                         <ul class="splide__list">
                             @foreach ($designThemes as $theme)
-                            <li class="splide__slide p-4">
-                                <div class="bg-white rounded-lg shadow-lg overflow-hidden group design-card h-full flex flex-col">
-                                    <div class="h-64 w-full">
-                                        @if ($theme['image_url'])
-                                            <img src="{{ $theme['image_url'] }}" alt="{{ $theme['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center p-4" style="background-color: {{ $theme['default_color'] }};">
-                                                <h3 class="font-serif text-3xl text-white/80 text-center">{{ $theme['title'] }}</h3>
-                                            </div>
-                                        @endif
+                                <li class="splide__slide p-4">
+                                    <div class="bg-white rounded-lg shadow-lg overflow-hidden group design-card h-full flex flex-col">
+                                        
+                                        {{-- Bagian Atas Kartu (Gambar dari thumbnail_path) --}}
+                                        <div class="h-64 w-full">
+                                            <img src="{{ asset('storage/' . $theme->thumbnail_path) }}" 
+                                                alt="{{ $theme->title }}" 
+                                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                        </div>
+
+                                        {{-- Bagian Bawah Kartu (Deskripsi dari database) --}}
+                                        <div class="p-6 flex-grow">
+                                            <h3 class="text-xl font-bold">{{ $theme->title }}</h3>
+                                            <p class="text-gray-600 mt-2">{{ $theme->description }}</p>
+                                        </div>
                                     </div>
-                                    <div class="p-6 flex-grow">
-                                        <h3 class="text-xl font-bold">{{ $theme['title'] }}</h3>
-                                        <p class="text-gray-600 mt-2">{{ $theme['description'] }}</p>
-                                    </div>
-                                </div>
-                            </li>
+                                </li>
                             @endforeach
                         </ul>
                     </div>

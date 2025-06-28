@@ -11,6 +11,8 @@ use App\Livewire\Auth\ForgotPasswordPage;
 use App\Livewire\Auth\ResetPasswordPage;
 use App\Livewire\DashboardPage;
 use App\Livewire\EditorPage;
+use App\Models\Invitation;
+use App\Models\InvitationTemplate;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,52 +27,39 @@ use App\Livewire\EditorPage;
 
 // Halaman utama
 Route::get('/', function () {
-    $softColors = ['#EAE0D5', '#BFB5A9', '#D8C7B9', '#A0522D', '#BFA89E', '#C6B4A9'];
-    $designThemes = [
-        ['title' => 'Klasik Elegan', 'description' => 'Keindahan abadi...', 'image_url' => asset('images/desain-klasik.jpg')],
-        ['title' => 'Modern Minimalis', 'description' => 'Garis bersih...', 'image_url' => null],
-        ['title' => 'Rustic & Floral', 'description' => 'Nuansa alam...', 'image_url' => asset('images/desain-rustic.jpg')],
-        ['title' => 'Sentuhan Nusantara', 'description' => 'Kaya akan motif...', 'image_url' => null],
-    ];
-    $themesWithColors = array_map(function ($theme) use ($softColors) {
-        if (is_null($theme['image_url'])) {
-            $theme['default_color'] = $softColors[array_rand($softColors)];
-        } else {
-            $theme['default_color'] = null;
-        }
-        return $theme;
-    }, $designThemes);
-    return view('welcome', ['designThemes' => $themesWithColors]);
-});
+    // Ambil beberapa template (misalnya 5) secara acak dari database untuk ditampilkan
+    $featured_templates = InvitationTemplate::inRandomOrder()->take(5)->get();
+    
+    // Kirim data tersebut ke view
+    return view('welcome', ['designThemes' => $featured_templates]);
+})->name('home');
 
 // Halaman pilih template
 Route::get('/pilih-template', function () {
-    $templates = [
-        ['title' => 'Serenada Klasik', 'image_url' => asset('images/template-1.jpg'), 'categories' => ['Elegan']],
-        ['title' => 'Garis Modern', 'image_url' => asset('images/template-2.jpg'), 'categories' => ['Modern']],
-        ['title' => 'Taman Bunga', 'image_url' => null, 'categories' => ['Floral', 'Elegan']],
-        ['title' => 'Warna Nusantara', 'image_url' => asset('images/template-4.jpg'), 'categories' => ['Nusantara']],
-        ['title' => 'Art Deco', 'image_url' => null, 'categories' => ['Modern', 'Elegan']],
-        ['title' => 'Ombak Tenang', 'image_url' => asset('images/template-6.jpg'), 'categories' => ['Modern']],
-        ['title' => 'Malam Berkilau', 'image_url' => null, 'categories' => ['Elegan']],
-    ];
-    $templates = array_map(function ($template) {
-        if (empty($template['image_url'])) {
-            $softColors = ['#EAE0D5', '#BFB5A9', '#D8C7B9', '#A0522D', '#BFA89E', '#C6B4A9', '#333333', '#38B2AC', '#2D3748'];
-            $template['default_color'] = $softColors[array_rand($softColors)];
-        } else {
-            $template['default_color'] = null;
-        }
-        return $template;
-    }, $templates);
-    return view('pilih-template', ['templates' => $templates]);
+    // 1. Ambil semua template dari database
+    $templates = InvitationTemplate::orderBy('title')->get();
+    
+    // 2. Ambil daftar kategori yang unik dan buang nilai null/kosong
+    $categories = InvitationTemplate::select('category')
+                                    ->whereNotNull('category')
+                                    ->where('category', '!=', '')
+                                    ->distinct()
+                                    ->pluck('category');
+    
+    // 3. Kirim kedua data tersebut ke view
+    return view('pilih-template', [
+        'templates' => $templates,
+        'categories' => $categories
+    ]);
 })->name('pilih-template');
 
-// Halaman editor
-// Route::get('/editor/{template_title}', EditorPage::class)->name('editor');
+Route::get('/template-preview/{template}', function (InvitationTemplate $template) {
+    // Laravel akan otomatis mencari template berdasarkan ID yang dilewatkan.
+    // Kemudian kita langsung mengembalikan konten HTML-nya.
+    return response($template->html_content);
+})->name('template.preview');
 
-// Route::get('/editor/create/{template_title}', EditorPage::class)->name('editor.create');
-// Route::get('/editor/{invitation}/edit', EditorPage::class)->name('editor.edit');
+// Halaman editor
 Route::get('editor/new/{template_title}', \App\Livewire\EditorPage::class)->name('editor.create');
 Route::get('editor/{invitation}', \App\Livewire\EditorPage::class)->name('editor.edit');
 
@@ -82,7 +71,6 @@ Route::middleware('guest')->group(function () {
     Route::get('forgot-password', ForgotPasswordPage::class)->name('password.request');
     Route::get('reset-password/{token}', ResetPasswordPage::class)->name('password.reset');
 });
-
 
 // --- ROUTE YANG MEMBUTUHKAN LOGIN ---
 Route::middleware('auth')->group(function() {
@@ -101,3 +89,12 @@ Route::middleware('auth')->group(function() {
         return redirect('/');
     })->name('logout');
 });
+
+// Rute untuk menampilkan undangan yang sudah jadi berdasarkan slug
+Route::get('/undangan/{slug}', function ($slug) {
+    // Cari undangan berdasarkan slug-nya
+    $invitation = Invitation::where('slug', $slug)->firstOrFail();
+
+    // Langsung tampilkan konten mentah dari kolom html_template
+    return response($invitation->html_template);
+})->name('invitation.show');

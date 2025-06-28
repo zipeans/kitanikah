@@ -28,7 +28,19 @@
                         <h2 class="text-2xl font-bold font-serif">Editor Undangan</h2>
                         <p class="text-sm text-gray-500">Template: <span class="font-semibold text-sienna-600">{{ $template_title }}</span></p>
                     </div>
-                    <a href="{{ route('dashboard') }}" class="text-sm text-gray-600 hover:text-sienna-600">&larr; Kembali ke Dashboard</a>
+                    @if ($invitationId)
+                        {{-- Jika sedang mengedit, kembali ke Dashboard --}}
+                        <a href="{{ route('dashboard') }}" class="text-sm font-medium text-gray-600 hover:text-sienna-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            Kembali ke Dashboard
+                        </a>
+                    @else
+                        {{-- Jika membuat baru, kembali ke halaman Pilih Template --}}
+                        <a href="{{ route('pilih-template') }}" class="text-sm font-medium text-gray-600 hover:text-sienna-600 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            Kembali Pilih Template
+                        </a>
+                    @endif
                 </div>
             </div>
 

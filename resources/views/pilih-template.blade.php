@@ -124,7 +124,7 @@
                     <h3 class="font-serif text-2xl font-bold mb-4 text-center">{{ $template['title'] }}</h3>
                     <div class="space-x-2">
                         <a href="#" class="bg-white text-gray-800 font-bold py-2 px-5 rounded-lg text-sm hover:bg-gray-200">Lihat Preview</a>
-                        <a href="{{ route('editor', ['template_title' => $template['title']]) }}" class="bg-sienna-600 text-white font-bold py-2 px-5 rounded-lg text-sm hover:bg-sienna-700">Pilih</a>
+                        <a href="{{ route('editor.create', ['template_title' => $template['title']]) }}" class="bg-sienna-600 text-white font-bold py-2 px-5 rounded-lg text-sm hover:bg-sienna-700">Pilih</a>
                     </div>
                 </div>
             </div>

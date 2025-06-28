@@ -1,4 +1,13 @@
 <div>
+    {{-- Notifikasi untuk pesan sukses (misal: setelah hapus) --}}
+    @if (session()->has('message'))
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-4">
+             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('message') }}</span>
+            </div>
+        </div>
+    @endif
+
     {{-- Header Halaman --}}
     <header class="bg-white shadow">
         <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -27,48 +36,50 @@
 
                     {{-- Daftar Undangan --}}
                     <div class="border-t border-gray-200">
-                        {{-- Logika untuk menampilkan daftar undangan akan ada di sini --}}
-                        {{-- Untuk sekarang, kita tampilkan placeholder --}}
 
-                        @if (false) {{-- Ganti 'false' dengan 'count($undangan) > 0' saat data sudah ada --}}
+                        {{-- Gunakan @forelse untuk perulangan yang elegan --}}
+                        @forelse ($invitations as $invitation)
+                            {{-- Buka grid jika ini adalah item pertama --}}
+                            @if ($loop->first)
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-8">
+                            @endif
                             
-                            {{-- CONTOH TAMPILAN JIKA ADA UNDANGAN --}}
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-8">
-                                <!-- Contoh Kartu Undangan 1 -->
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex flex-col justify-between">
-                                    <div>
-                                        <div class="flex justify-between items-start">
-                                            <h4 class="font-bold text-lg text-gray-800">Budi & Ani</h4>
+                            {{-- Kartu Undangan --}}
+                            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
+                                {{-- Detail Undangan --}}
+                                <div>
+                                    <div class="flex justify-between items-start">
+                                        <h4 class="font-bold text-lg text-gray-800 truncate pr-2" title="{{ $invitation->groom_nickname ?? 'Mempelai Pria' }} & {{ $invitation->bride_nickname ?? 'Mempelai Wanita' }}">
+                                            {{ $invitation->groom_nickname ?? 'Mempelai Pria' }} & {{ $invitation->bride_nickname ?? 'Mempelai Wanita' }}
+                                        </h4>
+                                        @if ($invitation->status == 'published')
                                             <span class="text-xs font-semibold bg-green-100 text-green-800 px-2 py-1 rounded-full">Published</span>
-                                        </div>
-                                        <p class="text-sm text-gray-500 mt-1">Template: Serenada Klasik</p>
+                                        @else
+                                            <span class="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Draft</span>
+                                        @endif
                                     </div>
-                                    <div class="mt-4 flex space-x-2">
-                                        <a href="#" class="text-sm font-medium text-sienna-600 hover:underline">Lihat</a>
-                                        <a href="#" class="text-sm font-medium text-sienna-600 hover:underline">Edit</a>
-                                        <a href="#" class="text-sm font-medium text-red-600 hover:underline">Hapus</a>
-                                    </div>
+                                    <p class="text-sm text-gray-500 mt-1">Template: {{ $invitation->template_title }}</p>
+                                    <p class="text-xs text-gray-400 mt-1">Diperbarui: {{ $invitation->updated_at->format('d M Y, H:i') }}</p>
                                 </div>
-                                <!-- Contoh Kartu Undangan 2 -->
-                                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 flex flex-col justify-between">
-                                    <div>
-                                        <div class="flex justify-between items-start">
-                                            <h4 class="font-bold text-lg text-gray-800">Rian & Dita</h4>
-                                             <span class="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Draft</span>
-                                        </div>
-                                        <p class="text-sm text-gray-500 mt-1">Template: Garis Modern</p>
-                                    </div>
-                                     <div class="mt-4 flex space-x-2">
-                                        <a href="#" class="text-sm font-medium text-sienna-600 hover:underline">Lihat</a>
-                                        <a href="#" class="text-sm font-medium text-sienna-600 hover:underline">Edit</a>
-                                        <a href="#" class="text-sm font-medium text-red-600 hover:underline">Hapus</a>
-                                    </div>
+                                {{-- Tombol Aksi per Kartu --}}
+                                <div class="mt-4 flex space-x-3 items-center">
+                                    <a href="#" class="text-sm font-medium text-blue-600 hover:underline">Lihat</a>
+                                    <a href="{{ route('editor.edit', ['invitation' => $invitation]) }}" class="text-sm font-medium text-sienna-600 hover:underline">Edit</a>
+                                    <button 
+                                        wire:click="delete({{ $invitation->id }})" 
+                                        wire:confirm="Apakah Anda yakin ingin menghapus undangan ini? Tindakan ini tidak dapat diurungkan."
+                                        class="text-sm font-medium text-red-600 hover:underline">
+                                        Hapus
+                                    </button>
                                 </div>
                             </div>
 
-                        @else
-
-                            {{-- TAMPILAN JIKA BELUM ADA UNDANGAN --}}
+                            {{-- Tutup grid jika ini adalah item terakhir --}}
+                            @if ($loop->last)
+                                </div>
+                            @endif
+                        @empty
+                            {{-- Tampilan jika belum ada undangan --}}
                             <div class="text-center py-16">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -81,8 +92,7 @@
                                     </a>
                                 </div>
                             </div>
-
-                        @endif
+                        @endforelse
                         
                     </div>
                 </div>

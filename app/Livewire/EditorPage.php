@@ -15,6 +15,7 @@ class EditorPage extends Component
     use WithFileUploads;
 
     public $template_title;
+    public ?Invitation $invitation;
     public ?int $invitationId = null;
 
     // Properti untuk semua field di form editor
@@ -34,29 +35,29 @@ class EditorPage extends Component
     // Properti untuk menampung file yang di-upload
     public $main_photo;
 
-    public function mount($invitation = null, $template_title = null)
+    public function mount(Invitation $invitation = null,string $template_title = null)
     {
         // Coba cari undangan berdasarkan ID yang dilewatkan dari rute
         if ($invitation && $invitation_model = Invitation::find($invitation)) {
             // -- MODE EDIT --
             // Pastikan pengguna hanya bisa mengedit undangannya sendiri
-            if ($invitation_model->user_id !== Auth::id()) {
+            if ($invitation->user_id !== Auth::id()) {
                 abort(403, 'Akses ditolak.');
             }
             
-            $this->invitation = $invitation_model;
-            $this->invitationId = $invitation_model->id;
-            $this->template_title = $invitation_model->template_title;
-            $this->groom_nickname = $invitation_model->groom_nickname;
-            $this->bride_nickname = $invitation_model->bride_nickname;
-            $this->akad_date = $invitation_model->akad_date;
-            $this->akad_time = $invitation_model->akad_time;
-            $this->akad_location = $invitation_model->akad_location;
-            $this->resepsi_date = $invitation_model->resepsi_date;
-            $this->resepsi_time = $invitation_model->resepsi_time;
-            $this->resepsi_location = $invitation_model->resepsi_location;
-            $this->love_story = $invitation_model->love_story;
-            $this->existing_photo_path = $invitation_model->main_photo_path;
+            $this->invitation = $invitation;
+            $this->invitationId = $invitation->id;
+            $this->template_title = $invitation->template_title;
+            $this->groom_nickname = $invitation->groom_nickname;
+            $this->bride_nickname = $invitation->bride_nickname;
+            $this->akad_date = $invitation->akad_date;
+            $this->akad_time = $invitation->akad_time;
+            $this->akad_location = $invitation->akad_location;
+            $this->resepsi_date = $invitation->resepsi_date;
+            $this->resepsi_time = $invitation->resepsi_time;
+            $this->resepsi_location = $invitation->resepsi_location;
+            $this->love_story = $invitation->love_story;
+            $this->existing_photo_path = $invitation->main_photo_path;
             
         } elseif ($template_title) {
             // -- MODE BUAT BARU --
@@ -188,28 +189,27 @@ class EditorPage extends Component
      */
     public function publish()
     {
-        // Cari template untuk mendapatkan harganya
         $template = InvitationTemplate::where('title', $this->template_title)->first();
 
-        // Jika template tidak ditemukan atau gratis, langsung publikasikan
+        // Jika template gratis, langsung publikasikan
         if (!$template || $template->price <= 0) {
+            $this->validate([
+                'groom_nickname' => 'required', 'bride_nickname' => 'required',
+                'akad_date' => 'required|date', 'akad_time' => 'required',
+            ]);
             $this->save('published');
             return;
         }
 
-        // --- ALUR UNTUK TEMPLATE BERBAYAR (SIMULASI) ---
+        // --- Alur untuk template berbayar ---
 
-        // 1. Validasi dulu data yang diperlukan untuk publikasi
-        $this->validate([
-            'groom_nickname' => 'required|string|max:255',
-            'bride_nickname' => 'required|string|max:255',
-            // Tambahkan aturan validasi lain yang wajib untuk publikasi
-        ]);
+        // 1. Validasi data yang diperlukan
+        $this->validate(['groom_nickname' => 'required', 'bride_nickname' => 'required']);
         
-        // 2. Simpan dulu data terakhir sebagai draft agar invitationId ter-update
+        // 2. Simpan dulu sebagai draft. Ini akan memperbarui $this->invitation
         $this->save('draft');
-
-        // 3. Buat catatan transaksi simulasi yang langsung berhasil
+        
+        // 3. Buat transaksi simulasi
         Transaction::create([
             'user_id' => auth()->id(),
             'invitation_id' => $this->invitationId,
@@ -219,14 +219,14 @@ class EditorPage extends Component
             'payment_type' => 'simulasi',
         ]);
 
-        // 4. Update status undangan menjadi "published"
+        // 4. Update status undangan. SEKARANG INI AKAN BERHASIL.
         $this->invitation->update(['status' => 'published']);
 
         // 5. Beri pesan sukses dan redirect
-        session()->flash('message', 'Pembayaran Simulasi Berhasil! Undangan Anda telah dipublikasikan.');
-        return $this->redirectRoute('dashboard');
-
-        // $this->save('published');
+        // Hapus session()->flash() dan ganti dengan dispatch yang membawa pesan
+        $this->dispatch('invitation-saved', message: 'Pembayaran Simulasi Berhasil! Undangan telah dipublikasikan.');
+        // session()->flash('message', 'Pembayaran Simulasi Berhasil! Undangan telah dipublikasikan.');
+        // return redirect()->route('dashboard');
     }
 
     public function render()

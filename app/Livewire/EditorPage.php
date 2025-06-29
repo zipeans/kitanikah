@@ -6,7 +6,9 @@ use App\Models\Invitation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use App\Models\Transaction;
 use Livewire\WithFileUploads;
+use App\Models\InvitationTemplate;
 
 class EditorPage extends Component
 {
@@ -27,6 +29,7 @@ class EditorPage extends Component
     public $love_story = '';
     public $existing_photo_path = '';
     public $activeAccordion = 1;
+    public $html_template_content = '';
     
     // Properti untuk menampung file yang di-upload
     public $main_photo;
@@ -94,6 +97,7 @@ class EditorPage extends Component
             'resepsi_time' => $this->resepsi_time ? date('H:i', strtotime($this->resepsi_time)) : null,
             'resepsi_location' => $this->resepsi_location,
             'love_story' => $this->love_story,
+            'html_template' => $this->html_template_content,
         ];
         
         // Jika ada foto utama yang di-upload, simpan dan tambahkan path-nya ke data.
@@ -184,7 +188,45 @@ class EditorPage extends Component
      */
     public function publish()
     {
-        $this->save('published');
+        // Cari template untuk mendapatkan harganya
+        $template = InvitationTemplate::where('title', $this->template_title)->first();
+
+        // Jika template tidak ditemukan atau gratis, langsung publikasikan
+        if (!$template || $template->price <= 0) {
+            $this->save('published');
+            return;
+        }
+
+        // --- ALUR UNTUK TEMPLATE BERBAYAR (SIMULASI) ---
+
+        // 1. Validasi dulu data yang diperlukan untuk publikasi
+        $this->validate([
+            'groom_nickname' => 'required|string|max:255',
+            'bride_nickname' => 'required|string|max:255',
+            // Tambahkan aturan validasi lain yang wajib untuk publikasi
+        ]);
+        
+        // 2. Simpan dulu data terakhir sebagai draft agar invitationId ter-update
+        $this->save('draft');
+
+        // 3. Buat catatan transaksi simulasi yang langsung berhasil
+        Transaction::create([
+            'user_id' => auth()->id(),
+            'invitation_id' => $this->invitationId,
+            'order_id' => 'SIMULASI-' . $this->invitationId . '-' . time(),
+            'gross_amount' => $template->price,
+            'transaction_status' => 'success',
+            'payment_type' => 'simulasi',
+        ]);
+
+        // 4. Update status undangan menjadi "published"
+        $this->invitation->update(['status' => 'published']);
+
+        // 5. Beri pesan sukses dan redirect
+        session()->flash('message', 'Pembayaran Simulasi Berhasil! Undangan Anda telah dipublikasikan.');
+        return $this->redirectRoute('dashboard');
+
+        // $this->save('published');
     }
 
     public function render()

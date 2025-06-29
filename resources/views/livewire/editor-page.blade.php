@@ -22,7 +22,7 @@
 
         <!-- Panel Kiri: Form Editor -->
         <aside class="w-1/3 h-screen bg-white shadow-lg flex flex-col editor-panel overflow-y-auto">
-            <input type="hidden" wire:model="html_template_content" id="html_content_input">
+            
             <div class="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
                 <div class="flex justify-between items-center">
                     <div>
@@ -46,7 +46,7 @@
             </div>
 
             <div class="flex-grow p-6 space-y-4">
-                
+                {{-- <input type="hidden" wire:model="html_template_content" id="html_content_input"> --}}
                 <div class="accordion-item bg-gray-50 rounded-lg border border-gray-200">
                     <button class="accordion-header w-full flex justify-between items-center p-4 text-left font-semibold">
                         <span>1. Info Mempelai</span>
@@ -132,10 +132,10 @@
                     @auth
                         {{-- TAMPILAN UNTUK PENGGUNA YANG SUDAH LOGIN --}}
                         {{-- Nanti tombol ini bisa dihubungkan dengan method Livewire --}}
-                        <button type="button" class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="saveDraft" onclick="document.getElementById('html_content_input').value = getPreviewHtml()">
+                        <button type="button" class="text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="saveDraft(getPreviewHtml())">
                             Simpan Draft
                         </button>
-                        <button type="button" class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="publish" onclick="document.getElementById('html_content_input').value = getPreviewHtml()">
+                        <button type="button" class="text-center bg-sienna-600 hover:bg-sienna-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300" wire:click="publish(getPreviewHtml())">
                             Publikasikan
                         </button>
                     @else

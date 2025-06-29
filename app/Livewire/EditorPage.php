@@ -179,16 +179,18 @@ class EditorPage extends Component
     /**
      * Menyimpan undangan sebagai draft.
      */
-    public function saveDraft()
+    public function saveDraft($html_template)
     {
+        $this->html_template_content = $html_template;
         $this->save('draft');
     }
 
     /**
      * Mempublikasikan undangan.
      */
-    public function publish()
+    public function publish($html_template)
     {
+        $this->html_template_content = $html_template;
         $template = InvitationTemplate::where('title', $this->template_title)->first();
 
         // Jika template gratis, langsung publikasikan

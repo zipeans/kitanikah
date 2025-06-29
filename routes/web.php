@@ -60,7 +60,7 @@ Route::get('/template-preview/{template}', function (InvitationTemplate $templat
 })->name('template.preview');
 
 // Halaman editor
-Route::get('editor/new/{template_title}', \App\Livewire\EditorPage::class)->name('editor.create');
+Route::get('editor/create/{template_title}', \App\Livewire\EditorPage::class)->name('editor.create');
 Route::get('editor/{invitation}', \App\Livewire\EditorPage::class)->name('editor.edit');
 
 // --- ROUTE OTENTIKASI (UNTUK PENGGUNA YANG BELUM LOGIN) ---

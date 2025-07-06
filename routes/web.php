@@ -29,7 +29,7 @@ use App\Models\InvitationTemplate;
 Route::get('/', function () {
     // Ambil beberapa template (misalnya 5) secara acak dari database untuk ditampilkan
     $featured_templates = InvitationTemplate::inRandomOrder()->take(5)->get();
-    
+
     // Kirim data tersebut ke view
     return view('welcome', ['designThemes' => $featured_templates]);
 })->name('home');
@@ -38,14 +38,14 @@ Route::get('/', function () {
 Route::get('/pilih-template', function () {
     // 1. Ambil semua template dari database
     $templates = InvitationTemplate::orderBy('title')->get();
-    
+
     // 2. Ambil daftar kategori yang unik dan buang nilai null/kosong
     $categories = InvitationTemplate::select('category')
                                     ->whereNotNull('category')
                                     ->where('category', '!=', '')
                                     ->distinct()
                                     ->pluck('category');
-    
+
     // 3. Kirim kedua data tersebut ke view
     return view('pilih-template', [
         'templates' => $templates,
@@ -60,21 +60,21 @@ Route::get('/template-preview/{template}', function (InvitationTemplate $templat
 })->name('template.preview');
 
 // Halaman editor
-Route::get('editor/create/{template_title}', \App\Livewire\EditorPage::class)->name('editor.create');
-Route::get('editor/{invitation}', \App\Livewire\EditorPage::class)->name('editor.edit');
+Route::get('editor/create/{template_slug}', \App\Livewire\AuthPage::class)->name('editor.create');
+Route::get('editor/edit/{invitation}', \App\Livewire\EditorPage::class)->name('editor.edit');
 
 // --- ROUTE OTENTIKASI (UNTUK PENGGUNA YANG BELUM LOGIN) ---
 Route::middleware('guest')->group(function () {
     Route::get('login', AuthPage::class)->name('login')->defaults('tab', 'login');
     Route::get('register', AuthPage::class)->name('register')->defaults('tab', 'register');
-    
+
     Route::get('forgot-password', ForgotPasswordPage::class)->name('password.request');
     Route::get('reset-password/{token}', ResetPasswordPage::class)->name('password.reset');
 });
 
 // --- ROUTE YANG MEMBUTUHKAN LOGIN ---
 Route::middleware('auth')->group(function() {
-    
+
     // Mengarahkan route /dashboard ke komponen Livewire DashboardPage
     Route::get('dashboard', DashboardPage::class)->name('dashboard');
 

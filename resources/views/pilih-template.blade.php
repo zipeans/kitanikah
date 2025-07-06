@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pilih Template - KitaNikah</title>
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
@@ -28,7 +28,7 @@
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
             <a href="{{ url('/') }}" class="font-serif text-2xl font-bold text-gray-900">KitaNikah</a>
-            
+
             <div class="flex items-center space-x-4">
                 @auth
                     {{-- ===== PANEL PENGGUNA YANG LEBIH MENARIK ===== --}}
@@ -43,8 +43,8 @@
                         </button>
 
                         {{-- Dropdown Menu --}}
-                        <div x-show="open" 
-                            @click.away="open = false" 
+                        <div x-show="open"
+                            @click.away="open = false"
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="transform opacity-0 scale-95"
                             x-transition:enter-end="transform opacity-100 scale-100"
@@ -53,12 +53,12 @@
                             x-transition:leave-end="transform opacity-0 scale-95"
                             class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 border"
                             style="display: none;">
-                            
+
                             <div class="px-4 py-3 border-b">
                                 <p class="text-sm leading-5">Masuk sebagai</p>
                                 <p class="text-sm font-medium leading-5 text-gray-900 truncate">{{ Auth::user()->email }}</p>
                             </div>
-                            
+
                             <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
                                 {{-- Ikon Dashboard --}}
                                 <svg class="w-5 h-5 mr-3 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M4 6h16M4 18h16" /></svg>
@@ -101,7 +101,7 @@
             <div class="flex flex-wrap items-center justify-center gap-2 md:gap-4" id="filter-container">
                 {{-- Tombol "Semua" selalu ada --}}
                 <button data-filter="Semua" class="filter-button active text-sm md:text-base font-semibold px-4 py-2 border border-gray-300 rounded-full transition duration-300 hover:bg-gray-200">Semua</button>
-                
+
                 {{-- Loop melalui kategori dari database untuk membuat tombol filter --}}
                 @foreach ($categories as $category)
                     <button data-filter="{{ $category }}" class="filter-button text-sm md:text-base font-semibold px-4 py-2 border border-gray-300 rounded-full transition duration-300 hover:bg-gray-200">{{ $category }}</button>
@@ -119,7 +119,13 @@
                     <h3 class="font-serif text-2xl font-bold mb-4 text-center">{{ $template->title }}</h3>
                     <div class="space-x-2">
                         <a href="{{ route('template.preview', ['template' => $template->id]) }}" target="_blank" class="bg-white text-gray-800 font-bold py-2 px-5 rounded-lg text-sm hover:bg-gray-200">Lihat Preview</a>
-                        <a href="{{ route('editor.create', ['template_title' => $template->title]) }}" class="bg-sienna-600 text-white font-bold py-2 px-5 rounded-lg text-sm hover:bg-sienna-700">Pilih</a>
+                        {{-- DEBUGGING: Add a dd() here to see the generated URL --}}
+                        <a href="{{ route('editor.create', ['template_slug' => $template->slug]) }}"
+                           class="bg-sienna-600 text-white font-bold py-2 px-5 rounded-lg text-sm hover:bg-sienna-700">
+                           Pilih {{ $template->slug }}
+                           {{-- You can temporarily add this to see the generated URL in the HTML source --}}
+                           {{-- {{ dd(route('editor.create', ['template_slug' => $template->slug])) }} --}}
+                        </a>
                     </div>
                 </div>
             </div>
@@ -130,7 +136,7 @@
     <footer class="bg-gray-800 text-white py-10 mt-16">
         {{-- Kode footer Anda tidak perlu diubah --}}
     </footer>
-    
+
     {{-- Logika JavaScript untuk filter tidak perlu diubah --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {

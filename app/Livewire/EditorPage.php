@@ -31,20 +31,24 @@ class EditorPage extends Component
     public $existing_photo_path = '';
     public $activeAccordion = 1;
     public $html_template_content = '';
-    
+
     // Properti untuk menampung file yang di-upload
     public $main_photo;
 
-    public function mount(Invitation $invitation = null,string $template_title = null)
+    public $initialHtmlContent = '';
+
+    public function mount(Invitation $invitation = null, string $template_slug  = null)
     {
-        // Coba cari undangan berdasarkan ID yang dilewatkan dari rute
-        if ($invitation && $invitation_model = Invitation::find($invitation)) {
+        // Remove the dd() statement here, as it was for debugging the mount call.
+        // If this line wasn't hit, the issue is before this point (route matching or URL generation).
+
+        if ($invitation && $invitation->exists) {
             // -- MODE EDIT --
             // Pastikan pengguna hanya bisa mengedit undangannya sendiri
             if ($invitation->user_id !== Auth::id()) {
                 abort(403, 'Akses ditolak.');
             }
-            
+
             $this->invitation = $invitation;
             $this->invitationId = $invitation->id;
             $this->template_title = $invitation->template_title;
@@ -58,15 +62,23 @@ class EditorPage extends Component
             $this->resepsi_location = $invitation->resepsi_location;
             $this->love_story = $invitation->love_story;
             $this->existing_photo_path = $invitation->main_photo_path;
-            
-        } elseif ($template_title) {
-            // -- MODE BUAT BARU --
-            $this->template_title = urldecode($template_title);
-            $this->invitation = new Invitation();
-            $this->existing_photo_path = null; 
+
+        } elseif ($template_slug) {
+            // -- MODE BUAT BARU DARI TEMPLATE --
+            // Cari template berdasarkan slug. firstOrFail() akan otomatis 404 jika tidak ketemu.
+            // This will throw a ModelNotFoundException if the slug doesn't exist, which is good.
+            $template = InvitationTemplate::where('slug', $template_slug)->firstOrFail();
+
+            // Set properti berdasarkan data dari template yang ditemukan
+            $this->template_title = $template->title;
+            $this->initialHtmlContent = $template->html_content; // Store HTML content
+
+            $this->invitation = new Invitation(); // Initialize a new Invitation model
+            $this->existing_photo_path = null; // No existing photo for new invitation
         } else {
-            // Jika tidak ada parameter yang valid, kembalikan ke dashboard
-            return redirect()->route('dashboard');
+            // Jika tidak ada parameter yang valid (bukan edit dan bukan buat baru dari template),
+            // kembalikan ke dashboard atau halaman pilih template.
+            return redirect()->route('pilih-template'); // Redirect to template selection
         }
     }
 
@@ -100,7 +112,7 @@ class EditorPage extends Component
             'love_story' => $this->love_story,
             'html_template' => $this->html_template_content,
         ];
-        
+
         // Jika ada foto utama yang di-upload, simpan dan tambahkan path-nya ke data.
         if ($this->main_photo) {
             // Pastikan direktori 'photos' ada di storage/app/public
@@ -125,7 +137,7 @@ class EditorPage extends Component
             session()->flash('message', 'Anda harus login untuk menyimpan undangan.'); // Tambahkan pesan flash
             return $this->redirect(route($redirectRoute), navigate: true);
         }
-        
+
         // dd($this->all());
         // Aturan validasi dasar
         $validationRules = [
@@ -145,12 +157,12 @@ class EditorPage extends Component
             $validationRules['akad_time'] = 'required';
             $validationRules['resepsi_time'] = 'required';
         }
-        
+
         // Validasi untuk foto utama jika ada
         if ($this->main_photo) {
             $validationRules['main_photo'] = 'image|max:2048'; // Maks 2MB
         }
-        
+
         // Jalankan validasi
         $this->validate($validationRules);
 
@@ -163,13 +175,13 @@ class EditorPage extends Component
             ['id' => $this->invitationId], // Cari berdasarkan ID jika sudah ada
             $data // Data yang akan disimpan
         );
-        
+
         // Perbarui invitationId jika ini adalah undangan baru
         $this->invitationId = $invitation->id;
 
         // PERBAIKAN DI SINI: Siapkan pesan dan kirim via dispatch
-        $message = ($status === 'draft') 
-            ? 'Undangan berhasil disimpan sebagai draft!' 
+        $message = ($status === 'draft')
+            ? 'Undangan berhasil disimpan sebagai draft!'
             : 'Selamat! Undangan Anda berhasil dipublikasikan.';
 
         // Hapus session()->flash() dan ganti dengan dispatch yang membawa pesan
@@ -207,10 +219,10 @@ class EditorPage extends Component
 
         // 1. Validasi data yang diperlukan
         $this->validate(['groom_nickname' => 'required', 'bride_nickname' => 'required']);
-        
+
         // 2. Simpan dulu sebagai draft. Ini akan memperbarui $this->invitation
         $this->save('draft');
-        
+
         // 3. Buat transaksi simulasi
         Transaction::create([
             'user_id' => auth()->id(),
@@ -236,4 +248,3 @@ class EditorPage extends Component
         return view('livewire.editor-page')->layout('layouts.public');
     }
 }
-
